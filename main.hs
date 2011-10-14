@@ -16,13 +16,15 @@ benchmark f a = do
 min4 a b c d = min a $ min b $ min c d
 max4 a b c d = max a $ max b $ max c d
 
-toRect :: String -> Rect Word16
+sampleRect = toRect "1,1,2,1,1,2,2,2"
+
+toRect :: String -> Rect
 toRect str = makeRect $ map (\a -> read a :: Word16) $ splitOn ',' str
     where makeRect [x1,y1,x2,y2,x3,y3,x4,y4] =
-              Rect { xlow  = min4 x1 x2 x3 x4
-                   , xhigh = max4 x1 x2 x3 x4
-                   , ylow  = min4 y1 y2 y3 y4
-                   , yhigh = max4 y1 y2 y3 y4 }
+              Rect { xLow  = min4 x1 x2 x3 x4
+                   , xHigh = max4 x1 x2 x3 x4
+                   , yLow  = min4 y1 y2 y3 y4
+                   , yHigh = max4 y1 y2 y3 y4 }
           makeRect _                         =
               error ("Attempted to construct Rect, but \'" ++ str ++
                      "\' does not have exactly 8 integers in it")
@@ -42,15 +44,15 @@ splitOn ch str = splitOnRec ch str "" []
 -- A function that takes a list of Strings that can be made into
 -- rectangles and builds a HilbertRTree by adding those rectangles
 -- to the empty tree, one by one
-buildTree :: [String] -> HilbertRTree Word16
-buildTree = foldl (\a b -> insert a $ toRect b) $ Leaf 59432
+buildTree :: [String] -> HilbertRTree
+buildTree = foldl (\a b -> insert a $ toRect b) $ emptyHRT
 
-printFound :: Show a => (NominalDiffTime, [Rect a]) -> IO ()
+printFound :: (NominalDiffTime, [Rect]) -> IO ()
 printFound (time, rects) = do
   printf "found %d matches in %s:\n" (length rects) (show time)
   mapM_ (\x -> putStr "    " >> print x) rects
 
-handleQueries :: HilbertRTree Word16 -> IO ()
+handleQueries :: HilbertRTree -> IO ()
 handleQueries hrt = do
   finished <- hIsEOF stdin
   if finished then return () else do
