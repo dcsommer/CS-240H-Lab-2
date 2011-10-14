@@ -6,8 +6,6 @@ import System.IO
 import Text.Printf
 import Data.Time.Clock
 
-maxOverlap = 4
-
 benchmark :: (a -> b) -> a -> IO (NominalDiffTime, b)
 benchmark f a = do
   start <- getCurrentTime
@@ -15,10 +13,16 @@ benchmark f a = do
   end <- getCurrentTime
   return (diffUTCTime end start, result)
 
+min4 a b c d = min a $ min b $ min c d
+max4 a b c d = max a $ max b $ max c d
+
 toRect :: String -> Rect Word16
 toRect str = makeRect $ map (\a -> read a :: Word16) $ splitOn ',' str
     where makeRect [x1,y1,x2,y2,x3,y3,x4,y4] =
-              Rect x1 x2 x3 x4
+              Rect { xlow  = min4 x1 x2 x3 x4
+                   , xhigh = max4 x1 x2 x3 x4
+                   , ylow  = min4 y1 y2 y3 y4
+                   , yhigh = max4 y1 y2 y3 y4 }
           makeRect _                         =
               error ("Attempted to construct Rect, but \'" ++ str ++
                      "\' does not have exactly 8 integers in it")

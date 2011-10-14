@@ -1,11 +1,22 @@
-module HilbertRTree(Rect, HilbertRTree, insert, search) where
+module HilbertRTree(Rect, xlow, xhigh, ylow, yhigh,
+                        HilbertRTree, Leaf, insert, search) where
 
 import Data.Word(Word16)
 import Data.Bits
 
 -- Constants
+------------
 n = (-1 :: Word16) --This becomes (2^16 - 1)
+maxOverlap = 4     --This is the maximum number of results returned by
+                   --  `search`
+c_l = 4            -- number of entries in a leaf node
+c_n = 3            -- number of entries in a non-leaf node
 
+-- Types
+--------
+
+-- The Largest Hilbert Value (LHV) is really a Word16
+type LHV Word16
 
 -- A rect 
 data Rect = Rect { xlow :: Word16
@@ -14,23 +25,31 @@ data Rect = Rect { xlow :: Word16
                  , yhigh :: Word16
                  } deriving Show
 
---typedef MBR Word16
+-- A minimum bounding rectangle (MBR) is a rectangle
+type MBR Rect
 
 ------- HilbertRTree
 
 -- Leafs hold at most C_l entries
 -- Nodes hold at most C_n entries
-data HilbertRTree = Leaf Word16 {-[(R, obj_id)]-} | Interior Word16 HilbertRTree HilbertRTree
+data HilbertRTree = Leaf [Rect] | Interior MBR [HilbertRTree] LHV
 
 insert :: HilbertRTree -> Rect -> HilbertRTree
 insert (Leaf val) (Rect x1 x2 x3 x4) =
     Leaf x1
 
 search :: HilbertRTree -> Rect -> [Rect]
-search (Leaf val) (Rect x1 x2 x3 x4) =
-    []
+search (Leaf val) (Rect x1 x2 x3 x4) = []
+search (Interior val l r) (Rect x1 x2 x3 x4) = []
 
 ------ Private helpers
+
+chooseLeaf rect h (Interior a l r) = chooseLeaf rect h l
+chooseLeaf rect h (Leaf x) = Leaf x
+
+handleOverflow = 2
+
+adjustTree = 3
 
 -- Calculate the Hilbert distance for the given point (x,y)
 xy2d :: Word16 -> Word16 -> Word16
