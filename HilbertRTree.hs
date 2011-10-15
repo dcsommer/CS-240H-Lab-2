@@ -51,8 +51,8 @@ insert (Interior [rs]) r = let h = xy2d ((xLow r) +
                                          div (xHigh r - xLow r) 2) in
   Leaf [r]
   
-insert (Leaf val) rect =
-  Leaf [rect]
+insert (Leaf val) rect = if (length val) < c_l then Leaf (rect:val) else
+                           
 
 search :: HilbertRTree -> Rect -> [Rect]
 search (Leaf val) rect = []
