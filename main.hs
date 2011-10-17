@@ -1,4 +1,5 @@
 import HilbertRTree
+import Rect
 import Data.Word(Word16)
 import System(getArgs)
 import Control.Monad(liftM, mapM_)
@@ -20,32 +21,29 @@ sampleRect = toRect "1,1,2,1,1,2,2,2"
 
 toRect :: String -> Rect
 toRect str = makeRect $ map (\a -> read a :: Word16) $ splitOn ',' str
-    where makeRect [x1,y1,x2,y2,x3,y3,x4,y4] =
-              Rect { xLow  = min4 x1 x2 x3 x4
-                   , xHigh = max4 x1 x2 x3 x4
-                   , yLow  = min4 y1 y2 y3 y4
-                   , yHigh = max4 y1 y2 y3 y4 }
-          makeRect _                         =
-              error ("Attempted to construct Rect, but \'" ++ str ++
-                     "\' does not have exactly 8 integers in it")
-
-maybeAdd a b = if (length a) > 0
-               then b++[a] else b
-
-splitOnRec :: Char -> String -> String -> [String] -> [String]
-splitOnRec ch "" cur result = maybeAdd cur result
-splitOnRec ch (x:rest) cur result
-    | x == ch   = splitOnRec ch rest "" $ maybeAdd cur result
-    | otherwise = splitOnRec ch rest (cur++[x]) result
+    where makeRect (x:y:rest) = makeRectR (Rect x x y y) rest
+          makeRect _          =
+            error ("Attempted to construct Rect, but \'" ++ str ++
+                   "\' does not even have 2 integers in it")
+          makeRectR cur (x:y:rest) =
+            makeRectR (boundRects cur (Rect x x y y)) rest
+          makeRectR cur _ = cur
 
 splitOn :: Char -> String -> [String]
-splitOn ch str = splitOnRec ch str "" []
+splitOn ch str = reverse $ splitOnRec ch str "" [] where
+  splitOnRec :: Char -> String -> String -> [String] -> [String]
+  splitOnRec ch "" cur result = maybeAdd cur result
+  splitOnRec ch (x:rest) cur result
+    | x == ch   = splitOnRec ch rest "" $ maybeAdd cur result
+    | otherwise = splitOnRec ch rest (x:cur) result
+  maybeAdd a b = if (length a) > 0
+                 then (reverse a):b else b
 
 -- A function that takes a list of Strings that can be made into
 -- rectangles and builds a HilbertRTree by adding those rectangles
 -- to the empty tree, one by one
 buildTree :: [String] -> HilbertRTree
-buildTree = foldl (\a b -> insert a $ toRect b) $ emptyHRT
+buildTree = foldl (\a b -> insert a $ toRect b) $ empty
 
 printFound :: (NominalDiffTime, [Rect]) -> IO ()
 printFound (time, rects) = do
@@ -56,7 +54,7 @@ handleQueries :: HilbertRTree -> IO ()
 handleQueries hrt = do
   finished <- hIsEOF stdin
   if finished then return () else do
-      inputLine <- getLine 
+      inputLine <- getLine
       found <- benchmark (search hrt) (toRect inputLine)
       printFound found  
       handleQueries hrt
