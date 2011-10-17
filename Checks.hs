@@ -21,4 +21,13 @@ p_bound_assoc r1 r2 r3 = boundRects (boundRects r1 r2) r3 ==
                          boundRects r1 (boundRects r2 r3)
 -- HilbertRTree properties
 p_insert_in_empty rect =
-  (length (search (insert empty rect) rect)) == 1
+  length (search (insert empty rect) rect) == 1
+  
+--Inserting a rectangle x times into an empty tree should yield x
+--rectangles when searching for that rectangle
+p_insert_x_in_empty :: Rect -> Word16 -> Bool
+p_insert_x_in_empty rect x =  
+  fromIntegral (length (search filledXtimes rect)) == x
+  where filledXtimes = fillRec x empty
+        fillRec x tree | x == 0 = tree
+                       | x > 0  = fillRec (x-1) (insert tree rect)
