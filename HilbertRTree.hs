@@ -87,7 +87,7 @@ insert a@(Interior entries) rect | length (entries) == 0 =
               --This interior node has space for the s+1'th sibling
               then Return1 (new:(makeEntry nodes):siblings)
               --This node doesn't have space for the s+1'th sibling
-              else handleOverflow {-TODO: MBR N N -}toInsert i siblings
+              else handleOverflow new i siblings
 
 search :: HilbertRTree -> Rect -> [Rect]
 search (Leaf children) rect = foldl searchF [] children where
@@ -100,7 +100,6 @@ search (Interior children) rect = foldl searchF [] children where
     if (length soFar < maxOverlap) && (intersectRect x rect)
     then soFar ++ search c rect
     else soFar
-  
 
 ------ Private helpers
 
@@ -165,16 +164,14 @@ handleOverflow rect entry coopSib =
         sort $ foldl (\a b -> case child b of
                          Interior x -> (x++a)
                          Leaf x -> (x++a)) (rect:entries) coopSib
+      -- Taken from paper, lines H3 and H4
       h3 toDistribute = Return1 $ distributeOver s toDistribute
       h4 toDistribute =
         let (x:xs) = distributeOver (s+1) toDistribute in Return2 xs x
-        
+      -- Given a number of nodes to distribute 'entries' over,
+      -- evenly split up 'entries' into 'numNodes' entries
       distributeOver numNodes entries = distRec numNodes entries []
-        distRec numNodes entries acc = distRec (numNodes-1) b (a:acc)
-        where (a,b) = splitAt (div (length entries) numNodes) entries
-              new = makeEntry distRec (numNodes-1) 
-                                        
---        let chunked = foldl (\a b ) [[]]
-
---Switch on HilbertRTree data constructor to determine type of bottom node
-  
+        where
+          distRec numNodes entries acc = distRec (numNodes-1) b (new:acc)
+          (a,b) = splitAt (div (length entries) numNodes) entries
+          new = makeEntry a
