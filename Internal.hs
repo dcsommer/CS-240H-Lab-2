@@ -69,6 +69,10 @@ insertI toInsert (NodeEntry { children = i@(Interior eNodes) },
       then Return1 (new:(liftInteriorEntries nodes):siblings)
       --This node doesn't have space for the s+1'th sibling
       else handleOverflow new i siblings
+           
+--Case 3: Error case - should never insert into node which has no children
+insertI _ (NodeEntry{ children = None }, _) =
+  error "Bug in insertI: tried to insert into entry without children"
 
 --Turns a list of entries (contained in some internal node) into an
 --entry. The return value can be inserted into the tree hierarchy
@@ -87,9 +91,9 @@ liftLeafEntries es = assert (length es > 0)
             , lhv = maxLhv es }
 
 maxMbr (e:es) =
-  foldl (\m e@NodeEntry{mbr = cur} -> boundRects m cur) (mbr e) es
+  foldl (\m NodeEntry{mbr = cur} -> boundRects m cur) (mbr e) es
 maxLhv (e:es) =
-  foldl (\m e@NodeEntry{lhv = cur} -> max m cur) (lhv e) es 
+  foldl (\m NodeEntry{lhv = cur} -> max m cur) (lhv e) es 
 
 -- Returns a pair of (entry to insert into, the other entries) given a
 -- list of entries in a node and the hilbert value of the item to insert
@@ -144,11 +148,11 @@ handleOverflow rect entry coopSib =
 -- 'entries' over, we evenly split up 'entries' into 'numNodes' entries
 distributeOver :: HilbertRTree -> Int -> [NodeEntry] -> [NodeEntry]
 distributeOver witness numNodes entries = distRec numNodes entries []
-  where distRec numNodes entries acc
-          | numNodes == 0 = acc
-          | otherwise     = assert (numNodes > 0)
-                            distRec (numNodes-1) b (new:acc)
-            where (a,b) = splitAt (div (length entries) numNodes) entries
+  where distRec count es acc
+          | count == 0 = acc
+          | otherwise  = assert (count > 0)
+                         distRec (count-1) b (new:acc)
+            where (a,b) = splitAt (div (length es) count) es
                   new = case witness of
                     Leaf _     -> liftLeafEntries a
                     Interior _ -> liftInteriorEntries a

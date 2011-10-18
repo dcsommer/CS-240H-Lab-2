@@ -10,14 +10,9 @@ import Data.Time.Clock
 benchmark :: (a -> b) -> a -> IO (NominalDiffTime, b)
 benchmark f a = do
   start <- getCurrentTime
-  result <- return $ (f a) `seq` (f a)
+  result <- return $! f $ a
   end <- getCurrentTime
   return (diffUTCTime end start, result)
-
-min4 a b c d = min a $ min b $ min c d
-max4 a b c d = max a $ max b $ max c d
-
-sampleRect = toRect "1,1,2,1,1,2,2,2"
 
 toRect :: String -> Rect
 toRect str = makeRect $ map (\a -> read a :: Word16) $ splitOn ',' str
@@ -43,7 +38,7 @@ splitOn ch str = reverse $ splitOnRec ch str "" [] where
 -- rectangles and builds a HilbertRTree by adding those rectangles
 -- to the empty tree, one by one
 buildTree :: [String] -> HilbertRTree
-buildTree = foldl (\a b -> insert a $ toRect b) $ empty
+buildTree = foldl (\a b -> insert a $ toRect b) empty
 
 printFound :: (NominalDiffTime, [Rect]) -> IO ()
 printFound (time, rects) = do
@@ -63,7 +58,7 @@ main = do
   filename <- liftM head getArgs
   list <- liftM lines $ readFile filename
 
-  --Benchmark the performance of constructing a HilbertRTree
+  --Benchmark the performance of constructing a HilbertRTree.
   --We construct it by folding the list of rectangles from
   --the file with the insert function, starting with an empty HilbertRTree
   (readTime, hrt) <- benchmark buildTree list
