@@ -35,15 +35,10 @@ p_search_limit rect x
   
 -- Inserting 2 non overlapping rects and searching for one should yield
 -- one, but if they overlap, two should be returned
-          
 p_insert_diff_result :: Rect -> Rect -> Bool
 p_insert_diff_result r1 r2 =
     if intersectRect r1 r2 then result == 2 else result == 1
       where result = length $ search (insert (insert empty r1) r2) r1
-
-p_insert_diff_with_noise_result :: Rect -> Word8 -> Rect -> Rect -> Bool
-p_insert_diff_with_noise_result nonce x r1 r2 = True
-
 
 --helpers
 insertMultiResult :: (Ord a, Num a, Ord b, Num b) => Rect -> a -> b

@@ -28,17 +28,25 @@ insert (Interior entries) rect | (length entries > 0) =
     Return2 old new -> Interior $ new:[liftInteriorEntries old]
 
 search :: HilbertRTree -> Rect -> [Rect]
-search (Leaf children) rect = foldl searchF [] children
-  searchF soFar NodeEntry{ mbr = x } = 
-    if (length soFar < maxReturn) && (intersectRect x rect)
-    then x:soFar
-    else soFar
-search (Interior children) rect = foldl searchF [] children where
-  searchF soFar NodeEntry{ mbr = x, children = c } = 
-    if (length soFar < maxReturn) && (intersectRect x rect)
-    then soFar ++ search c rect
-    else soFar
+search (Leaf children) rect = searchF children rect []
+search (Interior children) rect = searchF children rect []
 search None _ = []
+
+searchF :: [NodeEntry] -> Rect -> [Rect] -> [Rect]
+searchF (e@(NodeEntry{ mbr = x1 }):rest) rect acc =
+  if (length acc < maxReturn)
+  then if (intersectRect x1 rect)
+       then searchF rest rect (searchI e rect acc)
+       else searchF rest rect acc
+  else acc
+    where searchI NodeEntry{ mbr = x2, children = c2 } rect acc = 
+            if (length acc < maxReturn) && (intersectRect x2 rect)
+            then case c2 of
+              Leaf childEntries -> searchF childEntries rect acc
+              Interior childEntries -> searchF childEntries rect acc
+              None -> x2:acc
+            else acc
+searchF [] _ acc = acc
 
 makeLeafEntry rect =
   NodeEntry { mbr = rect, children = None, lhv = hilbertValue rect}
