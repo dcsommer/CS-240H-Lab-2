@@ -37,10 +37,10 @@ empty :: HilbertRTree
 empty = None
 
 cL :: Int
-cL = 2          -- number of entries in a leaf node
+cL = 8          -- number of entries in a leaf node
 
 cN :: Int
-cN = 2          -- number of entries in a non-leaf node
+cN = 8          -- number of entries in a non-leaf node
 
 ----------------------
 ------ Private helpers
