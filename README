@@ -5,4 +5,4 @@ To run all the property-based QuickCheck tests
 ghc --make Checks.hs; ./Checks
 
 To run the main program 
-ghc --make main.hs; ./main
+ghc --make main.hs; ./main rects.txt
