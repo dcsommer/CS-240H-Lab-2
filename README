@@ -1,4 +1,8 @@
 author: Daniel Sommermann
 to run: dl the repo, then
 
-ghc --make histogram.hs; ./histogram < mytestwords
+To run all the property-based QuickCheck tests
+ghc --make Checks.hs; ./Checks
+
+To run the main program 
+ghc --make main.hs; ./main

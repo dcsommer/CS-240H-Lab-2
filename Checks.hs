@@ -2,7 +2,7 @@ import Rect
 import HilbertRTree
 import Data.Word(Word8)
 import Test.QuickCheck.Test
-import Internal
+import HilbertRTree.Internal
 
 ---- Rect properties
 p_overlap_self :: Rect -> Bool

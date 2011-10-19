@@ -1,4 +1,4 @@
-module Internal where
+module HilbertRTree.Internal where
 
 import Data.List as L
 import Rect

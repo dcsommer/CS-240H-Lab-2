@@ -1,7 +1,7 @@
 module HilbertRTree(HilbertRTree, insert, search, empty, maxReturn) where
 
 import Rect
-import Internal
+import HilbertRTree.Internal
 
 -- Constants
 ------------
@@ -27,7 +27,7 @@ insert (Interior entries) rect
 -- Inserting into a leaf is not allowed. No leaf should be passed into
 -- `insert`. This should be fine because clients never get a handle to
 -- a Leaf, only a "None" or an "Interior"
-insert (Leaf _) _ = error "client somehow constructed a Leaf"
+insert (Leaf _) _ = error "client somehow constructed or was given a Leaf"
 
 search :: HilbertRTree -> Rect -> [Rect]
 search (Leaf cs) rect = searchF cs rect []
